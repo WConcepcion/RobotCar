@@ -33,6 +33,16 @@ namespace color_limits {
     cv::Scalar const BLUE_LOWER_HSV(100, 120, 30);
 };
 
+std::vector<cv::Rect> findBoundingBox(std::vector<std::vector<cv::Point>> contours){
+    std::vector<cv::Rect> boundingBoxes;
+    for(auto &contour : contours){
+        cv::Rect boundingBox = cv::boundingRect(contour);
+        
+        boundingBoxes.push_back(boundingBox);
+    }
+    return boundingBoxes;
+}
+
 cv::Mat findCones(cv::Mat &hsv, cv::Scalar lower_hsv, cv::Scalar upper_hsv) {
     cv::Mat cones;
     cv::medianBlur(hsv,hsv,11);
@@ -159,13 +169,27 @@ int32_t main(int32_t argc, char **argv) {
                 cv::findContours(blueCones, contoursBlue, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
                 cv::findContours(yellowCones, contoursYellow, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
                 //printf("contour blue: %d %d\n", contoursBlue[0], contoursBlue[1]);
-                std::cout << contoursBlue[0];
+                std::vector<cv::Rect> blueBox = findBoundingBox(contoursBlue);
+                for(auto &box : blueBox){
+                    cv::Scalar const blue(255, 255, 0);
+                    cv::rectangle(img, box, blue);
+                    cv::Point center(box.x + box.width/2,box.y+box.height);
+                      circle( img,center,5,cv::Scalar( 255, 255, 0),cv::FILLED,cv::LINE_8 );
+                }
+                std::vector<cv::Rect> yellowBox = findBoundingBox(contoursYellow);
+                for(auto &box : yellowBox){
+                    cv::Scalar const yellow(0, 255, 255);
+                    cv::rectangle(img, box, yellow);
+                    cv::Point center(box.x + box.width/2,box.y+box.height);
+                      circle( img,center,5,cv::Scalar( 0, 255, 255),cv::FILLED,cv::LINE_8 );
+                }
+                //std::cout << contoursBlue[0];
                 // Display image.
                 if (VERBOSE) {
                     cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
                     cv::drawContours(contours, contoursBlue, -1, cv::Scalar(255, 0, 0), 2);
                     cv::drawContours(contours, contoursYellow, -1, cv::Scalar(0, 255, 255), 2);
-                    cv::imshow("Img", contours);
+                    cv::imshow("Img", img);
                 }
 
                 char key = (char) cv::waitKey(1);
