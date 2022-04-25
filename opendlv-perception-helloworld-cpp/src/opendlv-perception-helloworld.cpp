@@ -26,6 +26,28 @@
 #include <memory>
 #include <mutex>
 
+namespace color_limits {
+    cv::Scalar const YELLOW_UPPER_HSV(20, 190, 220);
+    cv::Scalar const YELLOW_LOWER_HSV(14, 100, 120);
+    cv::Scalar const BLUE_UPPER_HSV(145, 255, 200);
+    cv::Scalar const BLUE_LOWER_HSV(100, 120, 30);
+};
+
+cv::Mat findCones(cv::Mat &hsv, cv::Scalar lower_hsv, cv::Scalar upper_hsv) {
+    cv::Mat cones;
+    cv::medianBlur(hsv,hsv,11);
+    cv::inRange(hsv, lower_hsv, upper_hsv, cones);
+
+    uint32_t const iterations = 3;
+
+    
+    for (uint32_t i = 0; i < iterations; i++) {
+        cv::dilate(cones, cones, cv::Mat(), cv::Point(-1, -1), iterations, 1, 1);
+        cv::erode(cones, cones, cv::Mat(), cv::Point(-1, -1), iterations, 1, 1);   
+    }
+    return cones;
+}
+
 int32_t main(int32_t argc, char **argv) {
     int32_t retCode{1};
     auto commandlineArguments = cluon::getCommandlineArguments(argc, argv);
@@ -55,29 +77,27 @@ int32_t main(int32_t argc, char **argv) {
             // Interface to a running OpenDaVINCI session; here, you can send and receive messages.
             cluon::OD4Session od4{static_cast<uint16_t>(std::stoi(commandlineArguments["cid"]))};
 
-            // Handler to receive distance readings (realized as C++ lambda).
-            std::mutex distancesMutex;
-            float front{0};
-            float rear{0};
-            float left{0};
-            float right{0};
-            auto onDistance = [&distancesMutex, &front, &rear, &left, &right](cluon::data::Envelope &&env){
-                auto senderStamp = env.senderStamp();
-                // Now, we unpack the cluon::data::Envelope to get the desired DistanceReading.
-                opendlv::proxy::DistanceReading dr = cluon::extractMessage<opendlv::proxy::DistanceReading>(std::move(env));
-
-                // Store distance readings.
-                std::lock_guard<std::mutex> lck(distancesMutex);
-                switch (senderStamp) {
-                    case 0: front = dr.distance(); break;
-                    case 2: rear = dr.distance(); break;
-                    case 1: left = dr.distance(); break;
-                    case 3: right = dr.distance(); break;
-                }
+            std::mutex pedalPositionMutex;
+            float pedalPosition{0};
+            auto onPedalPositionRequest = [&pedalPosition, &pedalPositionMutex](cluon::data::Envelope &&env){
+                // Now, we unpack the cluon::data::Envelope to get the desired PedalPositionRequest.
+                opendlv::proxy::PedalPositionRequest pp = cluon::extractMessage<opendlv::proxy::PedalPositionRequest>(std::move(env));
+                std::lock_guard<std::mutex> lck(pedalPositionMutex);
+                pedalPosition = pp.position();
             };
-            // Finally, we register our lambda for the message identifier for opendlv::proxy::DistanceReading.
-            od4.dataTrigger(opendlv::proxy::DistanceReading::ID(), onDistance);
+            od4.dataTrigger(opendlv::proxy::PedalPositionRequest::ID(), onPedalPositionRequest);
 
+            std::mutex steeringAngleMutex;
+            float steeringAngle{0};
+            auto onGroundSteeringRequest = [&steeringAngle, &steeringAngleMutex](cluon::data::Envelope &&env){
+                // Now, we unpack the cluon::data::Envelope to get the desired GroundSteeringRequest.
+                opendlv::proxy::GroundSteeringRequest sa = cluon::extractMessage<opendlv::proxy::GroundSteeringRequest>(std::move(env));
+                std::lock_guard<std::mutex> lck(steeringAngleMutex);
+                steeringAngle = sa.groundSteering();
+            };
+            od4.dataTrigger(opendlv::proxy::GroundSteeringRequest::ID(), onGroundSteeringRequest);
+
+            u_int64_t frameCounter{0};
             // Endless loop; end the program by pressing Ctrl-C.
             while (od4.isRunning()) {
                 cv::Mat img;
@@ -98,55 +118,64 @@ int32_t main(int32_t argc, char **argv) {
                 }
                 sharedMemory->unlock();
 
-                // TODO: Do something with the frame.
+                
+                {
+                    std::lock_guard<std::mutex> lck(pedalPositionMutex);
+                    std::lock_guard<std::mutex> lck2(steeringAngleMutex);
+                    
+                    std::cout << "Frame " << frameCounter << ": PedalPosition: " << pedalPosition << ", SteeringAngle: " << steeringAngle << std::endl;
+                }
+                
+                frameCounter++;
+                
+                
 
-                // Invert colors
-                cv::bitwise_not(img, img);
+                
+                // Blacken the hood of the car.
+                cv::Point front[1][4];
+                front[0][0] = cv::Point(0,img.rows);
+                front[0][1] = cv::Point(460,610);
+                front[0][2] = cv::Point(860,610);
+                front[0][3] = cv::Point(img.cols,img.rows);
+                cv::fillConvexPoly(img, front[0], 4, cv::Scalar(0,0,0));
+                // Crop image to remove top part of the image.
+                int x = 0;
+                int y = img.rows/2;
+                
+                img(cv::Rect(x,y,img.cols,img.rows-y)).copyTo(img);
+                
+                
+                // Convert to HSV color space.
+                cv::Mat hsv;
+                cv::cvtColor(img, hsv, cv::COLOR_BGR2HSV);
 
-                // Draw a red rectangle
-                cv::rectangle(img, cv::Point(50, 50), cv::Point(100, 100), cv::Scalar(0,0,255));
+                cv::Mat blueCones = findCones(hsv, color_limits::BLUE_LOWER_HSV, color_limits::BLUE_UPPER_HSV);
+                cv::Mat yellowCones = findCones(hsv, color_limits::YELLOW_LOWER_HSV, color_limits::YELLOW_UPPER_HSV);
+
+                std::vector<std::vector<cv::Point>> contoursBlue;
+                std::vector<std::vector<cv::Point>> contoursYellow;
+                std::vector<cv::Vec4i> hierarchy;
+                
+                cv::findContours(blueCones, contoursBlue, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+                cv::findContours(yellowCones, contoursYellow, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
 
                 // Display image.
                 if (VERBOSE) {
-                    cv::imshow(sharedMemory->name().c_str(), img);
-                    cv::waitKey(1);
+                    cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+                    cv::drawContours(contours, contoursBlue, -1, cv::Scalar(255, 0, 0), 2);
+                    cv::drawContours(contours, contoursYellow, -1, cv::Scalar(0, 255, 255), 2);
+                    cv::imshow("Img", contours);
                 }
 
-                ////////////////////////////////////////////////////////////////
-                // Do something with the distance readings if wanted.
+                char key = (char) cv::waitKey(1);
+                if (key == 'q' || key == 27)
                 {
-                    std::lock_guard<std::mutex> lck(distancesMutex);
-                    std::cout << "front = " << front << ", "
-                              << "rear = " << rear << ", "
-                              << "left = " << left << ", "
-                              << "right = " << right << "." << std::endl;
+                    break;
                 }
-
-                ////////////////////////////////////////////////////////////////
-                // Example for creating and sending a message to other microservices; can
-                // be removed when not needed.
-                opendlv::proxy::AngleReading ar;
-                ar.angle(123.45f);
-                od4.send(ar);
-
-                ////////////////////////////////////////////////////////////////
-                // Steering and acceleration/decelration.
-                //
-                // Uncomment the following lines to steer; range: +38deg (left) .. -38deg (right).
-                // Value groundSteeringRequest.groundSteering must be given in radians (DEG/180. * PI).
-                //opendlv::proxy::GroundSteeringRequest gsr;
-                //gsr.groundSteering(0);
-                //od4.send(gsr);
-
-                // Uncomment the following lines to accelerate/decelerate; range: +0.25 (forward) .. -1.0 (backwards).
-                // Be careful!
-                //opendlv::proxy::PedalPositionRequest ppr;
-                //ppr.position(0);
-                //od4.send(ppr);
             }
         }
         retCode = 0;
     }
     return retCode;
 }
-
