@@ -123,7 +123,7 @@ int32_t main(int32_t argc, char **argv) {
                     std::lock_guard<std::mutex> lck(pedalPositionMutex);
                     std::lock_guard<std::mutex> lck2(steeringAngleMutex);
                     
-                    std::cout << "Frame " << frameCounter << ": PedalPosition: " << pedalPosition << ", SteeringAngle: " << steeringAngle << std::endl;
+                    //std::cout << "Frame " << frameCounter << ": PedalPosition: " << pedalPosition << ", SteeringAngle: " << steeringAngle << std::endl;
                 }
                 
                 frameCounter++;
@@ -158,8 +158,8 @@ int32_t main(int32_t argc, char **argv) {
                 
                 cv::findContours(blueCones, contoursBlue, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
                 cv::findContours(yellowCones, contoursYellow, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-
-
+                //printf("contour blue: %d %d\n", contoursBlue[0], contoursBlue[1]);
+                std::cout << contoursBlue[0];
                 // Display image.
                 if (VERBOSE) {
                     cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
