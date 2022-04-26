@@ -108,6 +108,7 @@ int32_t main(int32_t argc, char **argv) {
             od4.dataTrigger(opendlv::proxy::GroundSteeringRequest::ID(), onGroundSteeringRequest);
 
             u_int64_t frameCounter{0};
+            
             // Endless loop; end the program by pressing Ctrl-C.
             while (od4.isRunning()) {
                 cv::Mat img;
@@ -137,10 +138,7 @@ int32_t main(int32_t argc, char **argv) {
                 }
                 
                 frameCounter++;
-                
-                
 
-                
                 // Blacken the hood of the car.
                 cv::Point front[1][4];
                 front[0][0] = cv::Point(0,img.rows);
@@ -168,22 +166,47 @@ int32_t main(int32_t argc, char **argv) {
                 
                 cv::findContours(blueCones, contoursBlue, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
                 cv::findContours(yellowCones, contoursYellow, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-                //printf("contour blue: %d %d\n", contoursBlue[0], contoursBlue[1]);
+
                 std::vector<cv::Rect> blueBox = findBoundingBox(contoursBlue);
+                std::vector<double> distanceBlue;
                 for(auto &box : blueBox){
                     cv::Scalar const blue(255, 255, 0);
                     cv::rectangle(img, box, blue);
                     cv::Point center(box.x + box.width/2,box.y+box.height);
                       circle( img,center,5,cv::Scalar( 255, 255, 0),cv::FILLED,cv::LINE_8 );
+                      
+                      cv::Point newPointBlue(center.x-(img.cols/2), img.rows-center.y);
+                      distanceBlue.push_back(std::pow(std::pow(newPointBlue.x, 2) + std::pow(newPointBlue.y, 2), 0.5));
+                    
                 }
+                double minDistanceBlue = 10000;
+                for (auto &distance : distanceBlue)
+                    {
+                        if (distance < minDistanceBlue){
+                            minDistanceBlue = distance;
+                        }
+                    }
+                std::cout <<"Minimum Distance blue: " << minDistanceBlue <<std::endl;
                 std::vector<cv::Rect> yellowBox = findBoundingBox(contoursYellow);
+                std::vector<double> distanceYellow;
                 for(auto &box : yellowBox){
                     cv::Scalar const yellow(0, 255, 255);
                     cv::rectangle(img, box, yellow);
                     cv::Point center(box.x + box.width/2,box.y+box.height);
                       circle( img,center,5,cv::Scalar( 0, 255, 255),cv::FILLED,cv::LINE_8 );
+                      cv::Point newPointYellow(center.x-(img.cols/2), img.rows-center.y);
+                      distanceYellow.push_back(std::pow(std::pow(newPointYellow.x, 2) + std::pow(newPointYellow.y, 2), 0.5)); 
+                      
                 }
-                //std::cout << contoursBlue[0];
+                double minDistanceYellow = 10000;
+                for (auto &distance : distanceYellow)
+                    {
+                        if (distance < minDistanceYellow){
+                            minDistanceYellow = distance;
+                        }
+                    }
+                std::cout <<"Minimum Distance yellow: " << minDistanceYellow <<std::endl;
+                std::cout <<" "<<std::endl;
                 // Display image.
                 if (VERBOSE) {
                     cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
