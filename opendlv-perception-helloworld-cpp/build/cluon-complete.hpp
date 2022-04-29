@@ -1,1 +1,0 @@
-/home/henrik/Desktop/autonomousrobot/opendlv-perception-helloworld-cpp/src/cluon-complete-v0.0.127.hpp
