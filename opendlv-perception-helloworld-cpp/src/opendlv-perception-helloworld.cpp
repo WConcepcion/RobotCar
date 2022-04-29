@@ -169,43 +169,53 @@ int32_t main(int32_t argc, char **argv) {
 
                 std::vector<cv::Rect> blueBox = findBoundingBox(contoursBlue);
                 std::vector<double> distanceBlue;
+                std::vector<cv::Point> bluePointsInRange;
                 for(auto &box : blueBox){
                     cv::Scalar const blue(255, 255, 0);
                     cv::rectangle(img, box, blue);
                     cv::Point center(box.x + box.width/2,box.y+box.height);
-                      circle( img,center,5,cv::Scalar( 255, 255, 0),cv::FILLED,cv::LINE_8 );
+                    circle( img,center,5,cv::Scalar( 255, 255, 0),cv::FILLED,cv::LINE_8 );
                       
-                      cv::Point newPointBlue(center.x-(img.cols/2), img.rows-center.y);
-                      distanceBlue.push_back(std::pow(std::pow(newPointBlue.x, 2) + std::pow(newPointBlue.y, 2), 0.5));
+                    cv::Point newPointBlue(center.x-(img.cols/2), img.rows-center.y);
+                    bluePointsInRange.push_back(newPointBlue);
                     
                 }
-                double minDistanceBlue = 10000;
-                for (auto &distance : distanceBlue)
+                int blueMinY = 10000;
+                int blueXValue = 10000;
+                for (auto &point : bluePointsInRange)
                     {
-                        if (distance < minDistanceBlue){
-                            minDistanceBlue = distance;
+                        if (point.y < blueMinY){
+                            blueMinY = point.y;
+                            blueXValue = point.x;
                         }
                     }
-                std::cout <<"Minimum Distance blue: " << minDistanceBlue <<std::endl;
+                cv::Point closestPointBlue(blueXValue,blueMinY);
+                std::cout <<"Closest point blue: " << closestPointBlue <<std::endl;
+
                 std::vector<cv::Rect> yellowBox = findBoundingBox(contoursYellow);
                 std::vector<double> distanceYellow;
+                std::vector<cv::Point> yellowPointsInRange;
                 for(auto &box : yellowBox){
                     cv::Scalar const yellow(0, 255, 255);
                     cv::rectangle(img, box, yellow);
                     cv::Point center(box.x + box.width/2,box.y+box.height);
                       circle( img,center,5,cv::Scalar( 0, 255, 255),cv::FILLED,cv::LINE_8 );
                       cv::Point newPointYellow(center.x-(img.cols/2), img.rows-center.y);
-                      distanceYellow.push_back(std::pow(std::pow(newPointYellow.x, 2) + std::pow(newPointYellow.y, 2), 0.5)); 
+                      yellowPointsInRange.push_back(newPointYellow);
                       
                 }
-                double minDistanceYellow = 10000;
-                for (auto &distance : distanceYellow)
+                int yellowMinY = 10000;
+                int yellowXValue = 10000;
+                for (auto &point : yellowPointsInRange)
                     {
-                        if (distance < minDistanceYellow){
-                            minDistanceYellow = distance;
+                        if (point.y < yellowMinY){
+                            yellowMinY = point.y;
+                            yellowXValue = point.x;
+                        
                         }
                     }
-                std::cout <<"Minimum Distance yellow: " << minDistanceYellow <<std::endl;
+                cv::Point closestPointYellow(yellowXValue,yellowMinY);
+                std::cout <<"Closest point yellow: " << closestPointYellow <<std::endl;
                 std::cout <<" "<<std::endl;
                 // Display image.
                 if (VERBOSE) {
