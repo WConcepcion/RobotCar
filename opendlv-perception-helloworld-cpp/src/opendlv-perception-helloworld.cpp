@@ -169,12 +169,15 @@ int32_t main(int32_t argc, char **argv) {
 
                 std::vector<cv::Rect> blueBox = findBoundingBox(contoursBlue);
                 std::vector<double> distanceBlue;
+                float bluex = 0.0;
+                float bluey = 0.0;
                 for(auto &box : blueBox){
                     cv::Scalar const blue(255, 255, 0);
                     cv::rectangle(img, box, blue);
                     cv::Point center(box.x + box.width/2,box.y+box.height);
                       circle( img,center,5,cv::Scalar( 255, 255, 0),cv::FILLED,cv::LINE_8 );
-                      
+                      bluex = center.x;
+                      bluey = center.y;
                       cv::Point newPointBlue(center.x-(img.cols/2), img.rows-center.y);
                       distanceBlue.push_back(std::pow(std::pow(newPointBlue.x, 2) + std::pow(newPointBlue.y, 2), 0.5));
                     
@@ -187,16 +190,20 @@ int32_t main(int32_t argc, char **argv) {
                         }
                     }
                 std::cout <<"Minimum Distance blue: " << minDistanceBlue <<std::endl;
+                std::cout<<"coordinates: " << bluex << " "<< bluey <<std::endl;
                 std::vector<cv::Rect> yellowBox = findBoundingBox(contoursYellow);
                 std::vector<double> distanceYellow;
+                float yellowx = 0.0;
+                float yellowy = 0.0;
                 for(auto &box : yellowBox){
                     cv::Scalar const yellow(0, 255, 255);
                     cv::rectangle(img, box, yellow);
-                    cv::Point center(box.x + box.width/2,box.y+box.height);
+                    cv::Point center(box.x + box.width/2 , box.y + box.height);
                       circle( img,center,5,cv::Scalar( 0, 255, 255),cv::FILLED,cv::LINE_8 );
+                      yellowx = center.x;
+                      yellowy = center.y;
                       cv::Point newPointYellow(center.x-(img.cols/2), img.rows-center.y);
                       distanceYellow.push_back(std::pow(std::pow(newPointYellow.x, 2) + std::pow(newPointYellow.y, 2), 0.5)); 
-                      
                 }
                 double minDistanceYellow = 10000;
                 for (auto &distance : distanceYellow)
@@ -205,7 +212,16 @@ int32_t main(int32_t argc, char **argv) {
                             minDistanceYellow = distance;
                         }
                     }
-                std::cout <<"Minimum Distance yellow: " << minDistanceYellow <<std::endl;
+                std::cout <<"Minimum Distance yellow: " << minDistanceYellow <<std::endl; 
+                std::cout<<"coordinates: " << yellowx << " "<< yellowy <<std::endl;
+                // find the center of the lane
+                // int pathPointx = 0;
+                // int pathPointy = 0;
+                
+                cv::Point pathPoint((bluex+yellowx)/2,(bluey+yellowy)/2);
+                    circle( img,pathPoint,5,cv::Scalar( 0, 255, 0),cv::FILLED,cv::LINE_8 );
+                std::cout<<"pathPoint x: "<< pathPoint.x << " y: "<< pathPoint.y << std::endl;
+
                 std::cout <<" "<<std::endl;
                 // Display image.
                 if (VERBOSE) {
