@@ -1,21 +1,21 @@
 Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
-Change Dir: /home/henrik/Desktop/autonomousrobot/opendlv-perception-helloworld-cpp/build/CMakeFiles/CMakeTmp
+Change Dir: /home/wconcepcion/autonomousrobot/opendlv-perception-helloworld-cpp/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_39635/fast && /usr/bin/make -f CMakeFiles/cmTC_39635.dir/build.make CMakeFiles/cmTC_39635.dir/build
-make[1]: Entering directory '/home/henrik/Desktop/autonomousrobot/opendlv-perception-helloworld-cpp/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_39635.dir/src.c.o
-/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_39635.dir/src.c.o   -c /home/henrik/Desktop/autonomousrobot/opendlv-perception-helloworld-cpp/build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_39635
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_39635.dir/link.txt --verbose=1
-/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD  -static-libgcc -static-libstdc++  -rdynamic CMakeFiles/cmTC_39635.dir/src.c.o  -o cmTC_39635 
-/usr/bin/ld: CMakeFiles/cmTC_39635.dir/src.c.o: in function `main':
+Run Build Command(s):/usr/bin/make cmTC_e10bc/fast && /usr/bin/make -f CMakeFiles/cmTC_e10bc.dir/build.make CMakeFiles/cmTC_e10bc.dir/build
+make[1]: Entering directory '/home/wconcepcion/autonomousrobot/opendlv-perception-helloworld-cpp/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_e10bc.dir/src.c.o
+/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_e10bc.dir/src.c.o   -c /home/wconcepcion/autonomousrobot/opendlv-perception-helloworld-cpp/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_e10bc
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e10bc.dir/link.txt --verbose=1
+/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD  -static-libgcc -static-libstdc++  -rdynamic CMakeFiles/cmTC_e10bc.dir/src.c.o  -o cmTC_e10bc 
+/usr/bin/ld: CMakeFiles/cmTC_e10bc.dir/src.c.o: in function `main':
 src.c:(.text+0x46): undefined reference to `pthread_create'
 /usr/bin/ld: src.c:(.text+0x52): undefined reference to `pthread_detach'
 /usr/bin/ld: src.c:(.text+0x63): undefined reference to `pthread_join'
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_39635.dir/build.make:87: cmTC_39635] Error 1
-make[1]: Leaving directory '/home/henrik/Desktop/autonomousrobot/opendlv-perception-helloworld-cpp/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_39635/fast] Error 2
+make[1]: *** [CMakeFiles/cmTC_e10bc.dir/build.make:87: cmTC_e10bc] Error 1
+make[1]: Leaving directory '/home/wconcepcion/autonomousrobot/opendlv-perception-helloworld-cpp/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_e10bc/fast] Error 2
 
 
 Source file was:

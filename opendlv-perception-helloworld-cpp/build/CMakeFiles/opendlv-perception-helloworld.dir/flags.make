@@ -6,5 +6,5 @@ CXX_FLAGS =      -D_XOPEN_SOURCE=700     -D_FORTIFY_SOURCE=2     -O2     -fstack
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/henrik/Desktop/autonomousrobot/opendlv-perception-helloworld-cpp/src -isystem /home/henrik/Desktop/autonomousrobot/opendlv-perception-helloworld-cpp/build -isystem /usr/include/opencv4 
+CXX_INCLUDES = -I/home/wconcepcion/autonomousrobot/opendlv-perception-helloworld-cpp/src -isystem /home/wconcepcion/autonomousrobot/opendlv-perception-helloworld-cpp/build -isystem /usr/include/opencv4 
 
