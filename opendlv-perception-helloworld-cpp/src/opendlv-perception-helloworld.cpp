@@ -191,10 +191,11 @@ int32_t main(int32_t argc, char **argv) {
                     }
                 cv::Point closestPointBlue(blueXValue,blueMinY);
                 std::cout <<"Closest point blue: " << closestPointBlue <<std::endl;
+                cluon::data::TimeStamp sampleTime = cluon::time::now();
                 opendlv::logic::perception::Cones blueConesMsg;
                 blueConesMsg.x(closestPointBlue.x);
                 blueConesMsg.y(closestPointBlue.y);
-                od4.send(blueConesMsg);
+                od4.send(blueConesMsg, sampleTime,0);
 
 
                 std::vector<cv::Rect> yellowBox = findBoundingBox(contoursYellow);
@@ -225,7 +226,7 @@ int32_t main(int32_t argc, char **argv) {
                 opendlv::logic::perception::Cones yellowConesMsg;
                 yellowConesMsg.x(closestPointYellow.x);
                 yellowConesMsg.y(closestPointYellow.y);
-                od4.send(yellowConesMsg);
+                od4.send(yellowConesMsg, sampleTime, 1);
                 // Display image.
                 if (VERBOSE) {
                     cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
