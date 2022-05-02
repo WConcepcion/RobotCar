@@ -191,6 +191,11 @@ int32_t main(int32_t argc, char **argv) {
                     }
                 cv::Point closestPointBlue(blueXValue,blueMinY);
                 std::cout <<"Closest point blue: " << closestPointBlue <<std::endl;
+                opendlv::logic::perception::Cones blueConesMsg;
+                blueConesMsg.x(closestPointBlue.x);
+                blueConesMsg.y(closestPointBlue.y);
+                od4.send(blueConesMsg);
+
 
                 std::vector<cv::Rect> yellowBox = findBoundingBox(contoursYellow);
                 std::vector<double> distanceYellow;
@@ -217,6 +222,10 @@ int32_t main(int32_t argc, char **argv) {
                 cv::Point closestPointYellow(yellowXValue,yellowMinY);
                 std::cout <<"Closest point yellow: " << closestPointYellow <<std::endl;
                 std::cout <<" "<<std::endl;
+                opendlv::logic::perception::Cones yellowConesMsg;
+                yellowConesMsg.x(closestPointYellow.x);
+                yellowConesMsg.y(closestPointYellow.y);
+                od4.send(yellowConesMsg);
                 // Display image.
                 if (VERBOSE) {
                     cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
