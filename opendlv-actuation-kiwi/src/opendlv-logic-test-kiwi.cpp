@@ -34,16 +34,17 @@ int32_t main(int32_t argc, char **argv) {
 
     Behavior behavior;
 
-    auto onDistanceReading{[&behavior](cluon::data::Envelope &&envelope)
+    auto onConeDistance{[&behavior](cluon::data::Envelope &&envelope)
       {
-        auto distanceReading = cluon::extractMessage<opendlv::proxy::DistanceReading>(std::move(envelope));
+        auto cones = cluon::extractMessage<opendlv::logic::perceptiion::Cones>(std::move(envelope));
         uint32_t const senderStamp = envelope.senderStamp();
         if (senderStamp == 0) {
-          behavior.setFrontUltrasonic(distanceReading);
+          behavior.setBlueCone(cones);
         } else if (senderStamp == 1) {
-          behavior.setRearUltrasonic(distanceReading);
+          behavior.setYellowCone(cones);
         }
       }};
+      /*
     auto onVoltageReading{[&behavior](cluon::data::Envelope &&envelope)
       {
         auto voltageReading = cluon::extractMessage<opendlv::proxy::VoltageReading>(std::move(envelope));
@@ -54,10 +55,11 @@ int32_t main(int32_t argc, char **argv) {
           behavior.setRightIr(voltageReading);
         }
       }};
+      */
 
     cluon::OD4Session od4{CID};
-    od4.dataTrigger(opendlv::proxy::DistanceReading::ID(), onDistanceReading);
-    od4.dataTrigger(opendlv::proxy::VoltageReading::ID(), onVoltageReading);
+    od4.dataTrigger(opendlv::logic::perception::Cones::ID(), onConeDistance);
+    //od4.dataTrigger(opendlv::proxy::VoltageReading::ID(), onVoltageReading);
 
     auto atFrequency{[&VERBOSE, &behavior, &od4]() -> bool
       {

@@ -16,14 +16,21 @@
  */
 
 #include "behavior.hpp"
+#include <math.h>
+
 
 Behavior::Behavior() noexcept:
+
+  m_closestBlueCone{},
+  m_closestYellowCone{}
   m_frontUltrasonicReading{},
   m_rearUltrasonicReading{},
   m_leftIrReading{},
   m_rightIrReading{},
   m_groundSteeringAngleRequest{},
   m_pedalPositionRequest{},
+  m_closestBlueConeMutex{},
+  m_closestYellowConeMutex{},
   m_frontUltrasonicReadingMutex{},
   m_rearUltrasonicReadingMutex{},
   m_leftIrReadingMutex{},
@@ -32,6 +39,7 @@ Behavior::Behavior() noexcept:
   m_pedalPositionRequestMutex{}
 {
 }
+
 
 opendlv::proxy::GroundSteeringRequest Behavior::getGroundSteeringAngle() noexcept
 {
@@ -43,6 +51,18 @@ opendlv::proxy::PedalPositionRequest Behavior::getPedalPositionRequest() noexcep
 {
   std::lock_guard<std::mutex> lock(m_pedalPositionRequestMutex);
   return m_pedalPositionRequest;
+}
+
+void Behavior::setBlueCones(opendlv::logic::perception::Cones const &closestBlueCone) noexcept
+{ 
+  std::lock_guard<std::mutex> lock(m_closestBlueConeMutex);
+  m_closestBlueCone = closestBlueCone;
+}
+
+void Behavior::setYellowCones(opendlv::logic::perception::Cones const &closestYellowCone) noexcept
+{ 
+  std::lock_guard<std::mutex> lock(m_closestYellowConeMutex);
+  m_closestYellowCone = closestYellowCone;
 }
 
 void Behavior::setFrontUltrasonic(opendlv::proxy::DistanceReading const &frontUltrasonicReading) noexcept
@@ -72,29 +92,60 @@ void Behavior::setRightIr(opendlv::proxy::VoltageReading const &rightIrReading) 
 
 void Behavior::step() noexcept
 {
+  opendlv::logic::perception::Cones closestBlueCone;
+  opendlv::logic::perception::Cones closestYellowCone;
   opendlv::proxy::DistanceReading frontUltrasonicReading;
   opendlv::proxy::DistanceReading rearUltrasonicReading;
   opendlv::proxy::VoltageReading leftIrReading;
   opendlv::proxy::VoltageReading rightIrReading;
   {
-    std::lock_guard<std::mutex> lock1(m_frontUltrasonicReadingMutex);
-    std::lock_guard<std::mutex> lock2(m_rearUltrasonicReadingMutex);
-    std::lock_guard<std::mutex> lock3(m_leftIrReadingMutex);
-    std::lock_guard<std::mutex> lock4(m_rightIrReadingMutex);
+    std::lock_guard<std::mutex> lock1(m_closestBlueConeMutex);
+    std::lock_guard<std::mutex> lock2(m_closestYellowConeMutex);
+    std::lock_guard<std::mutex> lock3(m_frontUltrasonicReadingMutex);
+    std::lock_guard<std::mutex> lock4(m_rearUltrasonicReadingMutex);
+    std::lock_guard<std::mutex> lock5(m_leftIrReadingMutex);
+    std::lock_guard<std::mutex> lock6(m_rightIrReadingMutex);
 
+    closestBlueCone = m_closestBlueCone;
+    closestYellowCone = m_closestYellowCone;
     frontUltrasonicReading = m_frontUltrasonicReading;
     rearUltrasonicReading = m_rearUltrasonicReading;
     leftIrReading = m_leftIrReading;
     rightIrReading = m_rightIrReading;
   }
 
+  float blueConeX = closestBlueCone.x();
+  float blueConeY = closestBlueCone.y();
+  float yellowConeX = closestYellowCone.x();
+  float yellowConeY = closestYellowCone.y();
   float frontDistance = frontUltrasonicReading.distance();
   float rearDistance = rearUltrasonicReading.distance();
   double leftDistance = convertIrVoltageToDistance(leftIrReading.voltage());
   double rightDistance = convertIrVoltageToDistance(rightIrReading.voltage());
 
   float pedalPosition = 0.2f;
-  float groundSteeringAngle = 0.3f;
+  float groundSteeringAngle = 0.0f;
+  
+  if (blueConeX = 10000f) || (blueConeY = 10000f) {
+    groundSteeringAngle = 0.2f;
+   } else if (yellowConeX = 10000f) || (yellowConeY = 10000f) {
+      groundSteeringAngle = -0.2f;
+    } else {
+      resultvec = (blueConeY + yellowConeY)/(blueConeX + yellowConeX);
+      anglefromzero = atan(resultvec) * 180/PI;
+      errorangle = anglefromzero - 90;
+      if (errorangle > 10) {
+        groundSteeringAngle = 0.2f;
+      } else if (errorangle < -10) {
+        groundSteeringAngle = -0.2f;
+      }
+    }
+
+  if (abs(errorangle) <= 10) {
+    pedalPosition = 0.4f;
+  } 
+  
+  /*
   if (frontDistance < 0.3f) {
     pedalPosition = 0.0f;
   } else {
@@ -112,7 +163,7 @@ void Behavior::step() noexcept
       groundSteeringAngle = 0.2f;
     }
   }
-
+  */
   {
     std::lock_guard<std::mutex> lock1(m_groundSteeringAngleRequestMutex);
     std::lock_guard<std::mutex> lock2(m_pedalPositionRequestMutex);
