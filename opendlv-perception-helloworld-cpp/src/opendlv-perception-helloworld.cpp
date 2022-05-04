@@ -31,6 +31,8 @@ namespace color_limits {
     cv::Scalar const YELLOW_LOWER_HSV(14, 100, 120);
     cv::Scalar const BLUE_UPPER_HSV(145, 255, 200);
     cv::Scalar const BLUE_LOWER_HSV(100, 120, 30);
+    cv::Scalar const CAR_BACK_UPPER_HSV(179,255, 148);
+    cv::Scalar const CAR_BACK_LOWER_HSV(0, 228, 20);
 };
 
 std::vector<cv::Rect> findBoundingBox(std::vector<std::vector<cv::Point>> contours){
@@ -159,13 +161,16 @@ int32_t main(int32_t argc, char **argv) {
 
                 cv::Mat blueCones = findCones(hsv, color_limits::BLUE_LOWER_HSV, color_limits::BLUE_UPPER_HSV);
                 cv::Mat yellowCones = findCones(hsv, color_limits::YELLOW_LOWER_HSV, color_limits::YELLOW_UPPER_HSV);
+                cv::Mat kiwiCarBack = findCones(hsv, color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
 
                 std::vector<std::vector<cv::Point>> contoursBlue;
                 std::vector<std::vector<cv::Point>> contoursYellow;
+                std::vector<std::vector<cv::Point>> contoursCarBack;
                 std::vector<cv::Vec4i> hierarchy;
                 
                 cv::findContours(blueCones, contoursBlue, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
                 cv::findContours(yellowCones, contoursYellow, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+                cv::findContours(kiwiCarBack, contoursCarBack, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
                 std::vector<cv::Rect> blueBox = findBoundingBox(contoursBlue);
                 std::vector<double> distanceBlue;
@@ -227,11 +232,49 @@ int32_t main(int32_t argc, char **argv) {
                 yellowConesMsg.x(closestPointYellow.x);
                 yellowConesMsg.y(closestPointYellow.y);
                 od4.send(yellowConesMsg, sampleTime, 1);
+
+                std::vector<cv::Rect> carBackBox = findBoundingBox(contoursCarBack);
+                std::vector<double> distanceCarBack;
+                std::vector<cv::Point> carBackPointsInRange;
+                for(auto &box : carBackBox){
+                    cv::Scalar const blue(255, 255, 0);
+                    cv::rectangle(img, box, blue);
+                    cv::Point center(box.x + box.width/2,box.y+box.height);
+                    circle( img,center,5,cv::Scalar( 255, 255, 0),cv::FILLED,cv::LINE_8 );
+                      
+                    cv::Point newPointCarBack(center.x-(img.cols/2), img.rows-center.y);
+                    carBackPointsInRange.push_back(newPointCarBack);
+                    
+                }
+                int carBackMinY = 10000;
+                int carBackXValue = 10000;
+                for (auto &point : carBackPointsInRange)
+                    {
+                        if (point.y < carBackMinY){
+                            carBackMinY = point.y;
+                            carBackXValue = point.x;
+                        }
+                    }
+                cv::Point closestPointCarBack(carBackXValue,carBackMinY);
+                std::cout <<"Closest point car back: " << closestPointCarBack <<std::endl;
+                
+                opendlv::logic::perception::Cones carBackMsg;
+                carBackMsg.x(closestPointCarBack.x);
+                carBackMsg.y(closestPointCarBack.y);
+                od4.send(carBackMsg, sampleTime,2);
                 // Display image.
                 if (VERBOSE) {
                     cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+                    
                     cv::drawContours(contours, contoursBlue, -1, cv::Scalar(255, 0, 0), 2);
                     cv::drawContours(contours, contoursYellow, -1, cv::Scalar(0, 255, 255), 2);
+                    cv::drawContours(contours, contoursCarBack, -1, cv::Scalar(0, 255, 255), 2);
+                    //cv::bitwise_not(blueCones, blueCones);
+                    //cv::bitwise_not(yellowCones, yellowCones);
+                    cv::Mat added;
+                    cv::bitwise_xor(yellowCones,blueCones,added);
+                    cv::bitwise_not(added,added);
+                    
                     cv::imshow("Img", img);
                 }
 
