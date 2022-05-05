@@ -17,7 +17,7 @@
 
 #include "cluon-complete.hpp"
 #include "opendlv-standard-message-set.hpp"
-#include "does-it-move.hpp"
+#include "single-track-model.hpp"
 
 int32_t main(int32_t argc, char **argv) {
   int32_t retCode{0};
@@ -46,9 +46,9 @@ int32_t main(int32_t argc, char **argv) {
     float const FREQ = std::stof(commandlineArguments["freq"]);
     double const DT = 1.0 / FREQ;
     
-    DoesItMove DoesItMove;
+    SingleTrackModel singleTrackModel;
 
-    auto onGroundSteeringRequest{[&DoesItMove, &INPUT_ID](
+    auto onGroundSteeringRequest{[&singleTrackModel, &INPUT_ID](
         cluon::data::Envelope &&envelope)
       {
         uint32_t const senderStamp = envelope.senderStamp();
@@ -56,10 +56,10 @@ int32_t main(int32_t argc, char **argv) {
           auto groundSteeringAngleRequest = 
             cluon::extractMessage<opendlv::proxy::GroundSteeringRequest>(
                 std::move(envelope));
-          DoesItMove.setGroundSteeringAngle(groundSteeringAngleRequest);
+          singleTrackModel.setGroundSteeringAngle(groundSteeringAngleRequest);
         }
       }};
-    auto onPedalPositionRequest{[&DoesItMove, &INPUT_ID](
+    auto onPedalPositionRequest{[&singleTrackModel, &INPUT_ID](
         cluon::data::Envelope &&envelope)
       {
         uint32_t const senderStamp = envelope.senderStamp();
@@ -67,7 +67,7 @@ int32_t main(int32_t argc, char **argv) {
           auto pedalPositionRequest = 
             cluon::extractMessage<opendlv::proxy::PedalPositionRequest>(
                 std::move(envelope));
-          DoesItMove.setPedalPosition(pedalPositionRequest);
+          singleTrackModel.setPedalPosition(pedalPositionRequest);
         }
       }};
 
@@ -77,10 +77,10 @@ int32_t main(int32_t argc, char **argv) {
     od4.dataTrigger(opendlv::proxy::PedalPositionRequest::ID(),
         onPedalPositionRequest);
 
-    auto atFrequency{[&FRAME_ID, &VERBOSE, &DT, &DoesItMove, &od4]() 
+    auto atFrequency{[&FRAME_ID, &VERBOSE, &DT, &singleTrackModel, &od4]() 
       -> bool
       {
-        opendlv::sim::KinematicState kinematicState = DoesItMove.step(DT);
+        opendlv::sim::KinematicState kinematicState = singleTrackModel.step(DT);
 
         cluon::data::TimeStamp sampleTime = cluon::time::now();
         od4.send(kinematicState, sampleTime, FRAME_ID);
