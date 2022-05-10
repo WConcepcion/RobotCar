@@ -36,12 +36,12 @@ int32_t main(int32_t argc, char **argv) {
 
     auto onConeDistance{[&behavior](cluon::data::Envelope &&envelope)
       {
-        auto cones = cluon::extractMessage<opendlv::logic::perceptiion::Cones>(std::move(envelope));
+        auto cones = cluon::extractMessage<opendlv::logic::perception::Cones>(std::move(envelope));
         uint32_t const senderStamp = envelope.senderStamp();
         if (senderStamp == 0) {
-          behavior.setBlueCone(cones);
+          behavior.setBlueCones(cones);
         } else if (senderStamp == 1) {
-          behavior.setYellowCone(cones);
+          behavior.setYellowCones(cones);
         }
       }};
       /*

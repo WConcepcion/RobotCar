@@ -22,7 +22,7 @@
 Behavior::Behavior() noexcept:
 
   m_closestBlueCone{},
-  m_closestYellowCone{}
+  m_closestYellowCone{},
   m_frontUltrasonicReading{},
   m_rearUltrasonicReading{},
   m_leftIrReading{},
@@ -114,25 +114,28 @@ void Behavior::step() noexcept
     rightIrReading = m_rightIrReading;
   }
 
-  float blueConeX = closestBlueCone.x();
-  float blueConeY = closestBlueCone.y();
-  float yellowConeX = closestYellowCone.x();
-  float yellowConeY = closestYellowCone.y();
-  float frontDistance = frontUltrasonicReading.distance();
-  float rearDistance = rearUltrasonicReading.distance();
-  double leftDistance = convertIrVoltageToDistance(leftIrReading.voltage());
-  double rightDistance = convertIrVoltageToDistance(rightIrReading.voltage());
+  int32_t blueConeX = closestBlueCone.x();
+  int32_t blueConeY = closestBlueCone.y();
+  int32_t yellowConeX = closestYellowCone.x();
+  int32_t yellowConeY = closestYellowCone.y();
+  double resultvec;
+  double anglefromzero;
+  double errorangle;
+  //float frontDistance = frontUltrasonicReading.distance();
+  //float rearDistance = rearUltrasonicReading.distance();
+  //double leftDistance = convertIrVoltageToDistance(leftIrReading.voltage());
+  //double rightDistance = convertIrVoltageToDistance(rightIrReading.voltage());
 
   float pedalPosition = 0.2f;
   float groundSteeringAngle = 0.0f;
   
-  if (blueConeX = 10000f) || (blueConeY = 10000f) {
+  if ((blueConeX = 10000) || (blueConeY = 10000)) {
     groundSteeringAngle = 0.2f;
-   } else if (yellowConeX = 10000f) || (yellowConeY = 10000f) {
+   } else if ((yellowConeX = 10000) || (yellowConeY = 10000)) {
       groundSteeringAngle = -0.2f;
     } else {
       resultvec = (blueConeY + yellowConeY)/(blueConeX + yellowConeX);
-      anglefromzero = atan(resultvec) * 180/PI;
+      anglefromzero = atan(resultvec) * 180/M_PI;
       errorangle = anglefromzero - 90;
       if (errorangle > 10) {
         groundSteeringAngle = 0.2f;
@@ -144,7 +147,7 @@ void Behavior::step() noexcept
   if (abs(errorangle) <= 10) {
     pedalPosition = 0.4f;
   } 
-  
+
   /*
   if (frontDistance < 0.3f) {
     pedalPosition = 0.0f;
