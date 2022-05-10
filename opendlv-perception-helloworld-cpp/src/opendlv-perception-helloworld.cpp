@@ -27,12 +27,17 @@
 #include <mutex>
 
 namespace color_limits {
-    cv::Scalar const YELLOW_UPPER_HSV(20, 190, 220);
-    cv::Scalar const YELLOW_LOWER_HSV(14, 100, 120);
-    cv::Scalar const BLUE_UPPER_HSV(145, 255, 200);
-    cv::Scalar const BLUE_LOWER_HSV(100, 120, 30);
+    //cv::Scalar const YELLOW_UPPER_HSV(20, 190, 220);
+    //cv::Scalar const YELLOW_LOWER_HSV(14, 100, 120);
+    //cv::Scalar const BLUE_UPPER_HSV(145, 255, 200);
+    //cv::Scalar const BLUE_LOWER_HSV(100, 120, 30);
     cv::Scalar const CAR_BACK_UPPER_HSV(179,255, 148);
     cv::Scalar const CAR_BACK_LOWER_HSV(0, 228, 20);
+//simulation
+    cv::Scalar const BLUE_UPPER_HSV(124, 255, 255);
+    cv::Scalar const BLUE_LOWER_HSV(110, 157, 255);
+    cv::Scalar const YELLOW_UPPER_HSV(35, 255, 255);
+    cv::Scalar const YELLOW_LOWER_HSV(9, 255, 255);
 };
 
 std::vector<cv::Rect> findBoundingBox(std::vector<std::vector<cv::Point>> contours){
