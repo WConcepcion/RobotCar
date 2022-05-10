@@ -161,28 +161,28 @@ int32_t main(int32_t argc, char **argv) {
 
                 cv::Mat blueCones = findCones(hsv, color_limits::BLUE_LOWER_HSV, color_limits::BLUE_UPPER_HSV);
                 cv::Mat yellowCones = findCones(hsv, color_limits::YELLOW_LOWER_HSV, color_limits::YELLOW_UPPER_HSV);
-                //cv::Mat kiwiCarBack = findCones(hsv, color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
+                cv::Mat kiwiCarBack = findCones(hsv, color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
 
 
 
-                cv::Mat hsvCones;
-                cv::Mat hsvCarBack;
-                cv::cvtColor(img, hsvCones, cv::COLOR_BGR2HSV);
-                cv::cvtColor(img, hsvCarBack, cv::COLOR_BGR2HSV);
+                //cv::Mat hsvCones;
+                //cv::Mat hsvCarBack;
+                //cv::cvtColor(img, hsvCones, cv::COLOR_BGR2HSV);
+                //cv::cvtColor(img, hsvCarBack, cv::COLOR_BGR2HSV);
                 cv::Mat blueConesFilteredOut;
                 cv::Mat yellowConesFilteredOut;
                 cv::Mat kiwiCarBackFilteredOut;
                 cv::Mat conesfilteredOut;
 
 
-                cv::bitwise_not(findCones(hsvCones, color_limits::BLUE_LOWER_HSV, color_limits::BLUE_UPPER_HSV),blueConesFilteredOut);
-                cv::bitwise_not(findCones(hsvCones, color_limits::YELLOW_LOWER_HSV, color_limits::YELLOW_UPPER_HSV),yellowConesFilteredOut);
-                cv::bitwise_not(findCones(hsvCarBack, color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV),kiwiCarBackFilteredOut);
-                cv::bitwise_xor(blueConesFilteredOut,yellowConesFilteredOut,conesfilteredOut);
-                cv::bitwise_not(conesfilteredOut,conesfilteredOut);
+                //cv::bitwise_not(findCones(hsvCones, color_limits::BLUE_LOWER_HSV, color_limits::BLUE_UPPER_HSV),blueConesFilteredOut);
+                //cv::bitwise_not(findCones(hsvCones, color_limits::YELLOW_LOWER_HSV, color_limits::YELLOW_UPPER_HSV),yellowConesFilteredOut);
+                //cv::bitwise_not(findCones(hsvCarBack, color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV),kiwiCarBackFilteredOut);
+                //cv::bitwise_xor(blueConesFilteredOut,yellowConesFilteredOut,conesfilteredOut);
+                //cv::bitwise_not(conesfilteredOut,conesfilteredOut);
 
-                cv::Mat kiwiCarBackDetection = findCones(conesfilteredOut,color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
-                cv::Mat kiwiCarBack = findCones(conesfilteredOut,color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
+                //cv::Mat kiwiCarBackDetection = findCones(conesfilteredOut,color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
+                //cv::Mat kiwiCarBack = findCones(conesfilteredOut,color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
 
                 std::vector<std::vector<cv::Point>> contoursBlue;
                 std::vector<std::vector<cv::Point>> contoursYellow;
@@ -258,10 +258,10 @@ int32_t main(int32_t argc, char **argv) {
                 std::vector<double> distanceCarBack;
                 std::vector<cv::Point> carBackPointsInRange;
                 for(auto &box : carBackBox){
-                    cv::Scalar const blue(255, 255, 0);
-                    cv::rectangle(img, box, blue);
+                    cv::Scalar const red(0, 0, 255);
+                    cv::rectangle(img, box, red);
                     cv::Point center(box.x + box.width/2,box.y+box.height);
-                    circle( img,center,5,cv::Scalar(0, 0, 255),cv::FILLED,cv::LINE_8 );
+                    //circle( img,center,5,cv::Scalar(0, 0, 255),cv::FILLED,cv::LINE_8 );
                       
                     cv::Point newPointCarBack(center.x-(img.cols/2), img.rows-center.y);
                     carBackPointsInRange.push_back(newPointCarBack);
@@ -296,7 +296,7 @@ int32_t main(int32_t argc, char **argv) {
                     cv::bitwise_xor(yellowCones,blueCones,added);
                     cv::bitwise_not(added,added);
                     
-                    cv::imshow("Img", kiwiCarBackDetection);
+                    cv::imshow("Img", img);
                 }
 
                 char key = (char) cv::waitKey(1);
