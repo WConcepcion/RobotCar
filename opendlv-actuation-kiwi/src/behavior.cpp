@@ -16,7 +16,8 @@
  */
 
 #include "behavior.hpp"
-#include <math.h>
+#include <cmath>
+#include<iostream>
 
 
 Behavior::Behavior() noexcept:
@@ -118,9 +119,10 @@ void Behavior::step() noexcept
   int32_t blueConeY = closestBlueCone.y();
   int32_t yellowConeX = closestYellowCone.x();
   int32_t yellowConeY = closestYellowCone.y();
-  double resultvec;
-  double anglefromzero;
-  double errorangle;
+  // double resultvec = 0.0f;
+  double anglefromzero = 0.0f;
+  double errorangle = 0.0f;
+  
   //float frontDistance = frontUltrasonicReading.distance();
   //float rearDistance = rearUltrasonicReading.distance();
   //double leftDistance = convertIrVoltageToDistance(leftIrReading.voltage());
@@ -128,25 +130,49 @@ void Behavior::step() noexcept
 
   float pedalPosition = 0.2f;
   float groundSteeringAngle = 0.0f;
+  std::cout<< "Blue Cone X: " << blueConeX<< " Y: " << blueConeY << std::endl;
+  std::cout<< "Yellow Cone X: " << yellowConeX << " Y: " << yellowConeY << std::endl;
   
-  if ((blueConeX = 10000) || (blueConeY = 10000)) {
-    groundSteeringAngle = 0.2f;
-   } else if ((yellowConeX = 10000) || (yellowConeY = 10000)) {
-      groundSteeringAngle = -0.2f;
-    } else {
-      resultvec = (blueConeY + yellowConeY)/(blueConeX + yellowConeX);
-      anglefromzero = atan(resultvec) * 180/M_PI;
+  if ((blueConeX == 10000) || (blueConeY == 10000)) {
+    // groundSteeringAngle = 0.2f;
+    groundSteeringAngle = -0.2f;
+    std::cout << "no blue cones visible. Turning right" << std::endl;
+   } else if ((yellowConeX == 10000) || (yellowConeY == 10000)) {
+      // groundSteeringAngle = -0.2f;
+      groundSteeringAngle = 0.2f;
+      std::cout << "no yellow cones visible. Turning left" << std::endl;
+    } else if ((blueConeX == 0) && (yellowConeX == 0)) {
+      groundSteeringAngle = 0.0f;
+      pedalPosition = 0.01f;
+      std::cout << "Initialising.." << std::endl;
+    }
+    else {
+      std::cout << "track lane found. Moving forward" << std::endl;
+      // resultvec = double(blueConeY + yellowConeY)/double(blueConeX + yellowConeX);
+      anglefromzero = atan2(double(blueConeY + yellowConeY),double(blueConeX + yellowConeX))*180/M_PI;
       errorangle = anglefromzero - 90;
-      if (errorangle > 10) {
-        groundSteeringAngle = 0.2f;
-      } else if (errorangle < -10) {
-        groundSteeringAngle = -0.2f;
+      std::cout<<"moving to ["<<blueConeX + yellowConeX<<", "<<blueConeY + yellowConeY<<"]"<<std::endl;
+      // anglefromzero = atan(resultvec) * 180/M_PI;
+      std::cout<< "angle from zero is " << anglefromzero <<" degrees"<<std::endl;
+      // groundSteeringAngle = -
+      if (errorangle > 5) {
+        groundSteeringAngle = 0.1f;
+        // groundSteeringAngle = -0.3f;
+        std::cout<<"turn LEFT!"<<std::endl;
+      } else if (errorangle < -5) {
+        groundSteeringAngle = -0.1f;
+        // groundSteeringAngle = 0.3f;
+        std::cout<<"turn RIGHT!"<<std::endl;
+      } else{
+        std::cout<<"moving at low speed"<<std::endl;
+        groundSteeringAngle = 0.0f;
+        pedalPosition = 0.1f;
       }
     }
 
-  if (abs(errorangle) <= 10) {
-    pedalPosition = 0.4f;
-  } 
+  // if (abs(errorangle) <= 10) {
+    
+  // } 
 
   /*
   if (frontDistance < 0.3f) {

@@ -4,12 +4,12 @@ services:
     sim-global:
         image: registry.opendlv.org/testing/opendlv-virtual-space:v0.0.8
         network_mode: "host"
-        command: "/usr/bin/opendlv-virtual-space --cid=111 --freq=50 --frame-id=0 --x=0.0 --yaw=0.2 --timemod=1.0"
+        command: "/usr/bin/opendlv-virtual-space --cid=111 --freq=50 --frame-id=0 --x=0.768 --y=1.46 --yaw=2.87 --timemod=0.2"
 
     sim-motor-kiwi:
         image: chalmersrevere/opendlv-sim-motor-kiwi-amd64:v0.0.7
         network_mode: "host"
-        command: "/usr/bin/opendlv-sim-motor-kiwi --cid=111 --freq=50 --frame-id=0 --timemod=1.0"
+        command: "/usr/bin/opendlv-sim-motor-kiwi --cid=111 --freq=50 --frame-id=0 --timemod=0.2"
 
     sim-ultrasonic-srf08-front:
         image: registry.opendlv.org/testing/opendlv-virtual-rangefinder-ultrasonic-srf08:v0.0.6
@@ -42,6 +42,7 @@ services:
     logic-test-kiwi:
         image: chalmersrevere/opendlv-logic-test-kiwi-amd64:v0.0.6
         network_mode: "host"
+        restart: on-failure
         command: "/usr/bin/opendlv-logic-test-kiwi --cid=111 --freq=10"
 
     sim-camera:
@@ -54,7 +55,7 @@ services:
           - /tmp:/tmp
         environment:
           - DISPLAY=${DISPLAY}
-        command: "--cid=111 --frame-id=0 --map-path=/opt/map/ --x=0.0 --z=0.095 --width=1280 --height=720 --fovy=48.8 --freq=5 --timemod=1.0 --verbose"
+        command: "--cid=111 --frame-id=0 --map-path=/opt/map/ --x=0.0 --z=0.095 --width=1280 --height=720 --fovy=48.8 --freq=10 --timemod=0.2 --verbose"
 
     opendlv-kiwi-view:
         image: chrberger/opendlv-kiwi-view-webrtc-multi:v0.0.6
@@ -66,5 +67,16 @@ services:
           - PORT=8081
           - OD4SESSION_CID=111
           - PLAYBACK_OD4SESSION_CID=253
+
+    opendlv-perception:
+        image: grp12/opendlv-perception:latest
+        network_mode: "host"
+        restart: on-failure
+        volumes:
+          - /tmp:/tmp
+    #     environment:
+    #       - DISPLAY=${DISPLAY}
+        command: "--cid=111 --name=video0.argb --width=1280 --height=720 --verbose"
+
 
 
