@@ -139,8 +139,8 @@ void Behavior::step() noexcept
   int32_t blueConeY = closestBlueCone.y();
   int32_t yellowConeX = closestYellowCone.x();
   int32_t yellowConeY = closestYellowCone.y();
-  int32_t carBackX = carBack.x();
-  int32_t carBackY = carBack.y();
+  int32_t otherCarX = carBack.x();
+  int32_t otherCarY = carBack.y();
   int32_t orangeConeX = closestOrangeCone.x();
   int32_t orangeConeY = closestOrangeCone.y();
 
@@ -159,9 +159,11 @@ void Behavior::step() noexcept
   std::cout<< "Yellow Cone X: " << yellowConeX << " Y: " << yellowConeY << std::endl;
   std::cout<< "Orange Cone X: " << orangeConeX << " Y: " << orangeConeY << std::endl;
   
+ 
+
   if ((orangeConeX == 10000) || (orangeConeY == 10000)) {
     std::cout << "no orange cones visible. DRIVE ON" << std::endl;
-  } else if ((orangeConeX > 0) && (orangeConeY < 300) && (carFromRight = true)) {
+  } else if ((orangeConeX > 0) && (orangeConeY < 300) && (carX > 200)) {
     pedalPosition = 0.0f;
     std::cout << "at intersection, car incoming" << std::endl;
   } 
