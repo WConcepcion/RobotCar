@@ -287,7 +287,7 @@ int32_t main(int32_t argc, char **argv) {
                 opendlv::logic::perception::Cones carBackMsg;
                 carBackMsg.x(closestPointCarBack.x);
                 carBackMsg.y(closestPointCarBack.y);
-                od4.send(carBackMsg, sampleTime,2);
+                od4.send(carBackMsg, sampleTime, 2);
                 // Display image.
                 if (VERBOSE) {
                     cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
