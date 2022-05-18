@@ -160,13 +160,21 @@ void Behavior::step() noexcept
   std::cout<< "Orange Cone X: " << orangeConeX << " Y: " << orangeConeY << std::endl;
   
  
-
+  // intesection behavior
   if ((orangeConeX == 10000) || (orangeConeY == 10000)) {
     std::cout << "no orange cones visible. DRIVE ON" << std::endl;
-  } else if ((orangeConeX > 0) && (orangeConeY < 300) && (carX > 200)) {
+  } else if ((orangeConeX > 0) && (orangeConeY < 300) && (otherCarX > 200) && (otherCarX < 500)) {
     pedalPosition = 0.0f;
-    std::cout << "at intersection, car incoming" << std::endl;
-  } 
+    std::cout << "STOPPING: at intersection, car incoming" << std::endl; 
+    } else if ((orangeconeX > 0) && (orangeConeY < 300) && (otherCarX > 500)) {
+    std::cout << "passing intersection, no incoming cars from right" << std::endl;
+    }
+  
+  //car in front behavior
+  if ((otherCarY < 300) && (otherCarX <= 200) || (otherCarX >= -200)) {
+    pedalPosition = 0.1f;
+    std::cout << "Car in front, slowing down" <<std::endl; }
+  // normal track behavior
   if ((blueConeX == 10000) || (blueConeY == 10000)) {
     // groundSteeringAngle = 0.2f;
     groundSteeringAngle = -0.2f;
