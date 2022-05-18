@@ -24,6 +24,7 @@ Behavior::Behavior() noexcept:
 
   m_closestBlueCone{},
   m_closestYellowCone{},
+  m_carBack{}
   m_frontUltrasonicReading{},
   m_rearUltrasonicReading{},
   m_leftIrReading{},
@@ -32,6 +33,7 @@ Behavior::Behavior() noexcept:
   m_pedalPositionRequest{},
   m_closestBlueConeMutex{},
   m_closestYellowConeMutex{},
+  m_carBackMutex{}
   m_frontUltrasonicReadingMutex{},
   m_rearUltrasonicReadingMutex{},
   m_leftIrReadingMutex{},
@@ -66,6 +68,12 @@ void Behavior::setYellowCones(opendlv::logic::perception::Cones const &closestYe
   m_closestYellowCone = closestYellowCone;
 }
 
+void Behavior::setCarBack(opendlv::logic::perceptoion::Cones const &carBack) noexcept
+{
+  std::lock_guard<std::mutex> lock(m_carBackMutex);
+  m_carBack = carBack
+}
+
 void Behavior::setFrontUltrasonic(opendlv::proxy::DistanceReading const &frontUltrasonicReading) noexcept
 {
   std::lock_guard<std::mutex> lock(m_frontUltrasonicReadingMutex);
@@ -95,6 +103,7 @@ void Behavior::step() noexcept
 {
   opendlv::logic::perception::Cones closestBlueCone;
   opendlv::logic::perception::Cones closestYellowCone;
+  opendlv::logic::perception::Cones carBack;
   opendlv::proxy::DistanceReading frontUltrasonicReading;
   opendlv::proxy::DistanceReading rearUltrasonicReading;
   opendlv::proxy::VoltageReading leftIrReading;
@@ -102,13 +111,15 @@ void Behavior::step() noexcept
   {
     std::lock_guard<std::mutex> lock1(m_closestBlueConeMutex);
     std::lock_guard<std::mutex> lock2(m_closestYellowConeMutex);
-    std::lock_guard<std::mutex> lock3(m_frontUltrasonicReadingMutex);
-    std::lock_guard<std::mutex> lock4(m_rearUltrasonicReadingMutex);
-    std::lock_guard<std::mutex> lock5(m_leftIrReadingMutex);
-    std::lock_guard<std::mutex> lock6(m_rightIrReadingMutex);
+    std::lock_guard<std::mutex> lock3(m_carBackMutex);
+    std::lock_guard<std::mutex> lock5(m_frontUltrasonicReadingMutex);
+    std::lock_guard<std::mutex> lock6(m_rearUltrasonicReadingMutex);
+    std::lock_guard<std::mutex> lock7(m_leftIrReadingMutex);
+    std::lock_guard<std::mutex> lock8(m_rightIrReadingMutex);
 
     closestBlueCone = m_closestBlueCone;
     closestYellowCone = m_closestYellowCone;
+    carBack = m_carBack;
     frontUltrasonicReading = m_frontUltrasonicReading;
     rearUltrasonicReading = m_rearUltrasonicReading;
     leftIrReading = m_leftIrReading;
@@ -119,6 +130,8 @@ void Behavior::step() noexcept
   int32_t blueConeY = closestBlueCone.y();
   int32_t yellowConeX = closestYellowCone.x();
   int32_t yellowConeY = closestYellowCone.y();
+  int32_t carBackX = carBack.x();
+  int32_t carBackY = carBack.y();
   // double resultvec = 0.0f;
   double anglefromzero = 0.0f;
   double errorangle = 0.0f;
