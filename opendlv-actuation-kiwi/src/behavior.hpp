@@ -38,6 +38,7 @@ class Behavior {
   opendlv::proxy::PedalPositionRequest getPedalPositionRequest() noexcept;
   void setBlueCones(opendlv::logic::perception::Cones const &) noexcept;
   void setYellowCones(opendlv::logic::perception::Cones const &) noexcept;
+  void setCarBack(opendlv::logic::perception::Cones const &) noexcept;
   void setFrontUltrasonic(opendlv::proxy::DistanceReading const &) noexcept;
   void setRearUltrasonic(opendlv::proxy::DistanceReading const &) noexcept;
   void setLeftIr(opendlv::proxy::VoltageReading const &) noexcept;
@@ -50,6 +51,7 @@ class Behavior {
  private:
   opendlv::logic::perception::Cones m_closestBlueCone;
   opendlv::logic::perception::Cones m_closestYellowCone;
+  opendlv::logic::perception::Cones m_carBack;
   opendlv::proxy::DistanceReading m_frontUltrasonicReading;
   opendlv::proxy::DistanceReading m_rearUltrasonicReading;
   opendlv::proxy::VoltageReading m_leftIrReading;
@@ -58,6 +60,7 @@ class Behavior {
   opendlv::proxy::PedalPositionRequest m_pedalPositionRequest;
   std::mutex m_closestBlueConeMutex;
   std::mutex m_closestYellowConeMutex;
+  std::mutex m_carBackMutex;
   std::mutex m_frontUltrasonicReadingMutex;
   std::mutex m_rearUltrasonicReadingMutex;
   std::mutex m_leftIrReadingMutex;
