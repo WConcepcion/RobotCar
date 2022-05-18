@@ -27,17 +27,24 @@
 #include <mutex>
 
 namespace color_limits {
-    //cv::Scalar const YELLOW_UPPER_HSV(20, 190, 220);
-    //cv::Scalar const YELLOW_LOWER_HSV(14, 100, 120);
-    //cv::Scalar const BLUE_UPPER_HSV(145, 255, 200);
-    //cv::Scalar const BLUE_LOWER_HSV(100, 120, 30);
+    /*cv::Scalar const YELLOW_UPPER_HSV(20, 190, 220);
+    cv::Scalar const YELLOW_LOWER_HSV(14, 100, 120);
+    cv::Scalar const BLUE_UPPER_HSV(145, 255, 200);
+    cv::Scalar const BLUE_LOWER_HSV(100, 120, 30);
+    cv::Scalar const ORANGE_UPPER_HSV(10, 265, 295);
+    cv::Scalar const ORANGE_LOWER_HSV(-10, 245, 215);
     cv::Scalar const CAR_BACK_UPPER_HSV(179,255, 148);
     cv::Scalar const CAR_BACK_LOWER_HSV(0, 228, 20);
+    */
 //simulation
     cv::Scalar const BLUE_UPPER_HSV(124, 255, 255);
     cv::Scalar const BLUE_LOWER_HSV(110, 157, 255);
     cv::Scalar const YELLOW_UPPER_HSV(35, 255, 255);
     cv::Scalar const YELLOW_LOWER_HSV(9, 255, 255);
+    cv::Scalar const ORANGE_UPPER_HSV(10, 265, 295);
+    cv::Scalar const ORANGE_LOWER_HSV(-10, 245, 215);
+    cv::Scalar const CAR_BACK_UPPER_HSV(187, 265, 245);
+    cv::Scalar const CAR_BACK_LOWER_HSV(167, 245, 165);
 };
 
 std::vector<cv::Rect> findBoundingBox(std::vector<std::vector<cv::Point>> contours){
@@ -166,36 +173,23 @@ int32_t main(int32_t argc, char **argv) {
 
                 cv::Mat blueCones = findCones(hsv, color_limits::BLUE_LOWER_HSV, color_limits::BLUE_UPPER_HSV);
                 cv::Mat yellowCones = findCones(hsv, color_limits::YELLOW_LOWER_HSV, color_limits::YELLOW_UPPER_HSV);
+                cv::Mat orangeCones = findCones(hsv, color_limits::ORANGE_LOWER_HSV, color_limits::ORANGE_UPPER_HSV);
                 cv::Mat kiwiCarBack = findCones(hsv, color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
 
-
-
-                //cv::Mat hsvCones;
-                //cv::Mat hsvCarBack;
-                //cv::cvtColor(img, hsvCones, cv::COLOR_BGR2HSV);
-                //cv::cvtColor(img, hsvCarBack, cv::COLOR_BGR2HSV);
                 cv::Mat blueConesFilteredOut;
                 cv::Mat yellowConesFilteredOut;
                 cv::Mat kiwiCarBackFilteredOut;
                 cv::Mat conesfilteredOut;
 
-
-                //cv::bitwise_not(findCones(hsvCones, color_limits::BLUE_LOWER_HSV, color_limits::BLUE_UPPER_HSV),blueConesFilteredOut);
-                //cv::bitwise_not(findCones(hsvCones, color_limits::YELLOW_LOWER_HSV, color_limits::YELLOW_UPPER_HSV),yellowConesFilteredOut);
-                //cv::bitwise_not(findCones(hsvCarBack, color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV),kiwiCarBackFilteredOut);
-                //cv::bitwise_xor(blueConesFilteredOut,yellowConesFilteredOut,conesfilteredOut);
-                //cv::bitwise_not(conesfilteredOut,conesfilteredOut);
-
-                //cv::Mat kiwiCarBackDetection = findCones(conesfilteredOut,color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
-                //cv::Mat kiwiCarBack = findCones(conesfilteredOut,color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
-
                 std::vector<std::vector<cv::Point>> contoursBlue;
                 std::vector<std::vector<cv::Point>> contoursYellow;
+                std::vector<std::vector<cv::Point>> contoursOrange;
                 std::vector<std::vector<cv::Point>> contoursCarBack;
                 std::vector<cv::Vec4i> hierarchy;
                 
                 cv::findContours(blueCones, contoursBlue, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
                 cv::findContours(yellowCones, contoursYellow, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+                cv::findContours(orangeCones, contoursOrange, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
                 cv::findContours(kiwiCarBack, contoursCarBack, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
                 std::vector<cv::Rect> blueBox = findBoundingBox(contoursBlue);
@@ -259,6 +253,36 @@ int32_t main(int32_t argc, char **argv) {
                 yellowConesMsg.y(closestPointYellow.y);
                 od4.send(yellowConesMsg, sampleTime, 1);
 
+                std::vector<cv::Rect> orangeBox = findBoundingBox(contoursOrange);
+                //std::vector<double> distanceYellow;
+                std::vector<cv::Point> orangePointsInRange;
+                for(auto &box : orangeBox){
+                    cv::Scalar const orange(0,165,255);
+                    cv::rectangle(img, box, orange);
+                    cv::Point center(box.x + box.width/2,box.y+box.height);
+                      circle( img,center,5,cv::Scalar( 0, 255, 255),cv::FILLED,cv::LINE_8 );
+                      cv::Point newPointOrange(center.x-(img.cols/2), img.rows-center.y);
+                      orangePointsInRange.push_back(newPointOrange);
+                      
+                }
+                int orangeMinY = 10000;
+                int orangeXValue = 10000;
+                for (auto &point : orangePointsInRange)
+                    {
+                        if (point.y < orangeMinY){
+                            orangeMinY = point.y;
+                            orangeXValue = point.x;
+                        
+                        }
+                    }
+                cv::Point closestPointOrange(orangeXValue,orangeMinY);
+                std::cout <<"Closest point orange: " << closestPointOrange <<std::endl;
+                std::cout <<" "<<std::endl;
+                opendlv::logic::perception::Cones orangeConesMsg;
+                orangeConesMsg.x(closestPointOrange.x);
+                orangeConesMsg.y(closestPointOrange.y);
+                od4.send(orangeConesMsg, sampleTime, 3);
+
                 std::vector<cv::Rect> carBackBox = findBoundingBox(contoursCarBack);
                 std::vector<double> distanceCarBack;
                 std::vector<cv::Point> carBackPointsInRange;
@@ -266,7 +290,7 @@ int32_t main(int32_t argc, char **argv) {
                     cv::Scalar const red(0, 0, 255);
                     cv::rectangle(img, box, red);
                     cv::Point center(box.x + box.width/2,box.y+box.height);
-                    //circle( img,center,5,cv::Scalar(0, 0, 255),cv::FILLED,cv::LINE_8 );
+                    circle( img,center,5,cv::Scalar(0, 0, 255),cv::FILLED,cv::LINE_8 );
                       
                     cv::Point newPointCarBack(center.x-(img.cols/2), img.rows-center.y);
                     carBackPointsInRange.push_back(newPointCarBack);
@@ -280,6 +304,7 @@ int32_t main(int32_t argc, char **argv) {
                             carBackMinY = point.y;
                             carBackXValue = point.x;
                         }
+
                     }
                 cv::Point closestPointCarBack(carBackXValue,carBackMinY);
                 std::cout <<"Closest point car back: " << closestPointCarBack <<std::endl;
@@ -287,7 +312,8 @@ int32_t main(int32_t argc, char **argv) {
                 opendlv::logic::perception::Cones carBackMsg;
                 carBackMsg.x(closestPointCarBack.x);
                 carBackMsg.y(closestPointCarBack.y);
-                od4.send(carBackMsg, sampleTime, 2);
+                od4.send(carBackMsg, sampleTime,2);
+                
                 // Display image.
                 if (VERBOSE) {
                     cv::Mat contours(img.size(), CV_8UC3, cv::Scalar(0, 0, 0));
@@ -295,8 +321,7 @@ int32_t main(int32_t argc, char **argv) {
                     cv::drawContours(contours, contoursBlue, -1, cv::Scalar(255, 0, 0), 2);
                     cv::drawContours(contours, contoursYellow, -1, cv::Scalar(0, 255, 255), 2);
                     cv::drawContours(contours, contoursCarBack, -1, cv::Scalar(0, 255, 255), 2);
-                    //cv::bitwise_not(blueCones, blueCones);
-                    //cv::bitwise_not(yellowCones, yellowCones);
+                    
                     cv::Mat added;
                     cv::bitwise_xor(yellowCones,blueCones,added);
                     cv::bitwise_not(added,added);
