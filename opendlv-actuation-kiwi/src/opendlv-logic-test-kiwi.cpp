@@ -44,6 +44,9 @@ int32_t main(int32_t argc, char **argv) {
           behavior.setYellowCones(cones);
           else if (senderStamp == 2) {
           behavior.setCarBack(cones);
+          else if (senderStamp == 3) {
+          behavior.setOrangeCones(cones);
+          }
         }
         }
       }};
