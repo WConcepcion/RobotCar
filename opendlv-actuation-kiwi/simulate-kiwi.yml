@@ -5,12 +5,12 @@ services:
         image: registry.opendlv.org/testing/opendlv-virtual-space:v0.0.8
         network_mode: "host"
         # command: "/usr/bin/opendlv-virtual-space --cid=111 --freq=50 --frame-id=0 --x=0.768 --y=1.46 --yaw=2.87 --timemod=0.05"
-        command: "/usr/bin/opendlv-virtual-space --cid=111 --freq=50 --frame-id=0 --x=1.9 --y=1.6 --yaw=-3.14 --timemod=0.05 --extra-cid-out=112:1"
+        command: "/usr/bin/opendlv-virtual-space --cid=111 --freq=50 --frame-id=0 --x=1.3 --y=1.6 --yaw=-3.14 --timemod=0.02 --extra-cid-out=112:1"
 
     sim-motor-kiwi-follower:
         image: chalmersrevere/opendlv-sim-motor-kiwi-amd64:v0.0.7
         network_mode: "host"
-        command: "/usr/bin/opendlv-sim-motor-kiwi --cid=111 --freq=50 --frame-id=0 --timemod=0.05"
+        command: "/usr/bin/opendlv-sim-motor-kiwi --cid=111 --freq=50 --frame-id=0 --timemod=0.02"
 
     sim-ultrasonic-srf08-front-follower:
         image: registry.opendlv.org/testing/opendlv-virtual-rangefinder-ultrasonic-srf08:v0.0.6
@@ -56,7 +56,7 @@ services:
           - /tmp:/tmp
         environment:
           - DISPLAY=${DISPLAY}
-        command: "--cid=111 --frame-id=0 --map-path=/opt/map/ --x=0.0 --z=0.095 --width=1280 --height=720 --fovy=48.8 --freq=10 --timemod=0.05 --name.argb=video0.argb --verbose"
+        command: "--cid=111 --frame-id=0 --map-path=/opt/map/ --x=0.0 --z=0.095 --width=1280 --height=720 --fovy=48.8 --freq=10 --timemod=0.02 --name.argb=video0.argb --verbose"
 
     opendlv-kiwi-view-follower:
         image: chrberger/opendlv-kiwi-view-webrtc-multi:v0.0.6
@@ -89,17 +89,17 @@ services:
           - /tmp:/tmp
         environment:
           - DISPLAY=${DISPLAY}
-        command: "--cid=112 --frame-id=1 --map-path=/opt/map/ --x=0.0 --z=0.095 --width=1280 --height=720 --fovy=48.8 --freq=10 --timemod=0.05 --name.argb=video1.argb --verbose"
+        command: "--cid=112 --frame-id=1 --map-path=/opt/map/ --x=0.0 --z=0.095 --width=1280 --height=720 --fovy=48.8 --freq=10 --timemod=0.02 --name.argb=video1.argb --verbose"
 
     sim-global-lead:
       image: chalmersrevere/opendlv-sim-global-amd64:v0.0.7
       network_mode: "host"
-      command: "/usr/bin/opendlv-sim-global --cid=112 --freq=50 --timemod=0.05 --frame-id=1 --x=0.3 --y=1.6 --yaw=-3.14 --extra-cid-out=111:1"
+      command: "/usr/bin/opendlv-sim-global --cid=112 --freq=50 --timemod=0.02 --frame-id=1 --x=0.3 --y=1.6 --yaw=-3.14 --extra-cid-out=111:1"
 
     sim-motor-kiwi-lead:
       image: chalmersrevere/opendlv-sim-motor-kiwi-amd64:v0.0.7
       network_mode: "host"
-      command: "/usr/bin/opendlv-sim-motor-kiwi --cid=112 --freq=200 --timemod=0.05 --frame-id=1"
+      command: "/usr/bin/opendlv-sim-motor-kiwi --cid=112 --freq=200 --timemod=0.02 --frame-id=1"
 
     opendlv-kiwi-view-lead:
       image: chrberger/opendlv-kiwi-view-webrtc-multi:v0.0.6
