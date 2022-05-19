@@ -24,7 +24,8 @@ Behavior::Behavior() noexcept:
 
   m_closestBlueCone{},
   m_closestYellowCone{},
-  m_carBack{}
+  m_carBack{},
+  m_closestOrangeCone{},
   m_frontUltrasonicReading{},
   m_rearUltrasonicReading{},
   m_leftIrReading{},
@@ -33,7 +34,8 @@ Behavior::Behavior() noexcept:
   m_pedalPositionRequest{},
   m_closestBlueConeMutex{},
   m_closestYellowConeMutex{},
-  m_carBackMutex{}
+  m_carBackMutex{},
+  m_closestOrangeConeMutex{},
   m_frontUltrasonicReadingMutex{},
   m_rearUltrasonicReadingMutex{},
   m_leftIrReadingMutex{},
@@ -68,10 +70,10 @@ void Behavior::setYellowCones(opendlv::logic::perception::Cones const &closestYe
   m_closestYellowCone = closestYellowCone;
 }
 
-void Behavior::setCarBack(opendlv::logic::perceptoion::Cones const &carBack) noexcept
+void Behavior::setCarBack(opendlv::logic::perception::Cones const &carBack) noexcept
 {
   std::lock_guard<std::mutex> lock(m_carBackMutex);
-  m_carBack = carBack
+  m_carBack = carBack;
 }
 
 void Behavior::setOrangeCones(opendlv::logic::perception::Cones const &closestOrangeCone) noexcept
@@ -166,12 +168,12 @@ void Behavior::step() noexcept
   } else if ((orangeConeX > 0) && (orangeConeY < 300) && (otherCarX > 200) && (otherCarX < 500)) {
     pedalPosition = 0.0f;
     std::cout << "STOPPING: at intersection, car incoming" << std::endl; 
-    } else if ((orangeconeX > 0) && (orangeConeY < 300) && (otherCarX > 500)) {
+    } else if ((orangeConeX > 0) && (orangeConeY < 300) && (otherCarX > 500)) {
     std::cout << "passing intersection, no incoming cars from right" << std::endl;
     }
   
   //car in front behavior
-  if ((otherCarY < 300) && (otherCarX <= 200) || (otherCarX >= -200)) {
+  if ((otherCarY < 300) && ((otherCarX <= 200) || (otherCarX >= -200))) {
     pedalPosition = 0.1f;
     std::cout << "Car in front, slowing down" <<std::endl; }
   // normal track behavior

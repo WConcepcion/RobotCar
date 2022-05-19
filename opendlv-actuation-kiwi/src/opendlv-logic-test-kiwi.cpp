@@ -42,14 +42,13 @@ int32_t main(int32_t argc, char **argv) {
           behavior.setBlueCones(cones);
         } else if (senderStamp == 1) {
           behavior.setYellowCones(cones);
-          else if (senderStamp == 2) {
+          } else if (senderStamp == 2) {
           behavior.setCarBack(cones);
-          else if (senderStamp == 3) {
+          } else if (senderStamp == 3) {
           behavior.setOrangeCones(cones);
           }
         }
-        }
-      }};
+      };
 
       /*
     auto onVoltageReading{[&behavior](cluon::data::Envelope &&envelope)
