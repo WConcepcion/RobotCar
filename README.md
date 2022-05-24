@@ -16,7 +16,7 @@ cd ~/autonomousrobots
 
 xhost +
 
-docker-compose -f kiwi-task-1.yml
+docker-compose -f kiwi-task-1.yml up
 
 #Task 2: Create a robot behavior that drives around the track as quickly as possible without hitting any cones, or any other slower driving robots. More than one robot will drive in the track at the same time. The distance to a robot should be kept relatively constant (to simply stop and wait is not acceptable). As the front distance sensor is quite narrow in it's field of view, the camera sensor is most likely needed in order to achieve good results.
 
@@ -26,4 +26,4 @@ cd ~/autonomousrobots
 
 xhost +
 
-docker-compose -f kiwi-task-2.yml
+docker-compose -f kiwi-task-2.yml up
