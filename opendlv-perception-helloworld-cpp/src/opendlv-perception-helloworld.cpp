@@ -36,6 +36,7 @@ namespace color_limits {
     cv::Scalar const CAR_BACK_UPPER_HSV(179,255, 148);
     cv::Scalar const CAR_BACK_LOWER_HSV(0, 228, 20);
     */
+    
 //simulation
     cv::Scalar const BLUE_UPPER_HSV(124, 255, 255);
     cv::Scalar const BLUE_LOWER_HSV(110, 157, 255);
@@ -45,6 +46,7 @@ namespace color_limits {
     cv::Scalar const ORANGE_LOWER_HSV(-10, 245, 215);
     cv::Scalar const CAR_BACK_UPPER_HSV(187, 265, 245);
     cv::Scalar const CAR_BACK_LOWER_HSV(167, 245, 165);
+    
 };
 
 std::vector<cv::Rect> findBoundingBox(std::vector<std::vector<cv::Point>> contours){
@@ -101,26 +103,6 @@ int32_t main(int32_t argc, char **argv) {
             // Interface to a running OpenDaVINCI session; here, you can send and receive messages.
             cluon::OD4Session od4{static_cast<uint16_t>(std::stoi(commandlineArguments["cid"]))};
 
-            std::mutex pedalPositionMutex;
-            float pedalPosition{0};
-            auto onPedalPositionRequest = [&pedalPosition, &pedalPositionMutex](cluon::data::Envelope &&env){
-                // Now, we unpack the cluon::data::Envelope to get the desired PedalPositionRequest.
-                opendlv::proxy::PedalPositionRequest pp = cluon::extractMessage<opendlv::proxy::PedalPositionRequest>(std::move(env));
-                std::lock_guard<std::mutex> lck(pedalPositionMutex);
-                pedalPosition = pp.position();
-            };
-            od4.dataTrigger(opendlv::proxy::PedalPositionRequest::ID(), onPedalPositionRequest);
-
-            std::mutex steeringAngleMutex;
-            float steeringAngle{0};
-            auto onGroundSteeringRequest = [&steeringAngle, &steeringAngleMutex](cluon::data::Envelope &&env){
-                // Now, we unpack the cluon::data::Envelope to get the desired GroundSteeringRequest.
-                opendlv::proxy::GroundSteeringRequest sa = cluon::extractMessage<opendlv::proxy::GroundSteeringRequest>(std::move(env));
-                std::lock_guard<std::mutex> lck(steeringAngleMutex);
-                steeringAngle = sa.groundSteering();
-            };
-            od4.dataTrigger(opendlv::proxy::GroundSteeringRequest::ID(), onGroundSteeringRequest);
-
             u_int64_t frameCounter{0};
             
             // Endless loop; end the program by pressing Ctrl-C.
@@ -133,34 +115,24 @@ int32_t main(int32_t argc, char **argv) {
                 // Lock the shared memory.
                 sharedMemory->lock();
                 {
-                    // Copy image into cvMat structure.
-                    // Be aware of that any code between lock/unlock is blocking
-                    // the camera to provide the next frame. Thus, any
-                    // computationally heavy algorithms should be placed outside
-                    // lock/unlock
+                    
                     cv::Mat wrapped(HEIGHT, WIDTH, CV_8UC4, sharedMemory->data());
                     img = wrapped.clone();
                 }
                 sharedMemory->unlock();
 
                 
-                {
-                    std::lock_guard<std::mutex> lck(pedalPositionMutex);
-                    std::lock_guard<std::mutex> lck2(steeringAngleMutex);
-                    
-                    //std::cout << "Frame " << frameCounter << ": PedalPosition: " << pedalPosition << ", SteeringAngle: " << steeringAngle << std::endl;
-                }
                 
                 frameCounter++;
 
-                // Blacken the hood of the car.
+                // filter out the hood of the car.
                 cv::Point front[1][4];
                 front[0][0] = cv::Point(0,img.rows);
                 front[0][1] = cv::Point(460,610);
                 front[0][2] = cv::Point(860,610);
                 front[0][3] = cv::Point(img.cols,img.rows);
                 cv::fillConvexPoly(img, front[0], 4, cv::Scalar(0,0,0));
-                // Crop image to remove top part of the image.
+                // remove top part of the image in order to remove false positives.
                 int x = 0;
                 int y = img.rows/2;
                 
@@ -176,10 +148,6 @@ int32_t main(int32_t argc, char **argv) {
                 cv::Mat orangeCones = findCones(hsv, color_limits::ORANGE_LOWER_HSV, color_limits::ORANGE_UPPER_HSV);
                 cv::Mat kiwiCarBack = findCones(hsv, color_limits::CAR_BACK_LOWER_HSV, color_limits::CAR_BACK_UPPER_HSV);
 
-                cv::Mat blueConesFilteredOut;
-                cv::Mat yellowConesFilteredOut;
-                cv::Mat kiwiCarBackFilteredOut;
-                cv::Mat conesfilteredOut;
 
                 std::vector<std::vector<cv::Point>> contoursBlue;
                 std::vector<std::vector<cv::Point>> contoursYellow;
@@ -254,7 +222,6 @@ int32_t main(int32_t argc, char **argv) {
                 od4.send(yellowConesMsg, sampleTime, 1);
 
                 std::vector<cv::Rect> orangeBox = findBoundingBox(contoursOrange);
-                //std::vector<double> distanceYellow;
                 std::vector<cv::Point> orangePointsInRange;
                 for(auto &box : orangeBox){
                     cv::Scalar const orange(0,165,255);
@@ -322,9 +289,6 @@ int32_t main(int32_t argc, char **argv) {
                     cv::drawContours(contours, contoursYellow, -1, cv::Scalar(0, 255, 255), 2);
                     cv::drawContours(contours, contoursCarBack, -1, cv::Scalar(0, 255, 255), 2);
                     
-                    cv::Mat added;
-                    cv::bitwise_xor(yellowCones,blueCones,added);
-                    cv::bitwise_not(added,added);
                     
                     cv::imshow("Img", img);
                 }
