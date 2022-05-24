@@ -24,7 +24,8 @@ Behavior::Behavior() noexcept:
 
   m_closestBlueCone{},
   m_closestYellowCone{},
-  m_carBack{}
+  m_carBack{},
+  m_closestOrangeCone{},
   m_frontUltrasonicReading{},
   m_rearUltrasonicReading{},
   m_leftIrReading{},
@@ -33,7 +34,8 @@ Behavior::Behavior() noexcept:
   m_pedalPositionRequest{},
   m_closestBlueConeMutex{},
   m_closestYellowConeMutex{},
-  m_carBackMutex{}
+  m_carBackMutex{},
+  m_closestOrangeConeMutex{},
   m_frontUltrasonicReadingMutex{},
   m_rearUltrasonicReadingMutex{},
   m_leftIrReadingMutex{},
@@ -68,10 +70,16 @@ void Behavior::setYellowCones(opendlv::logic::perception::Cones const &closestYe
   m_closestYellowCone = closestYellowCone;
 }
 
-void Behavior::setCarBack(opendlv::logic::perceptoion::Cones const &carBack) noexcept
+void Behavior::setCarBack(opendlv::logic::perception::Cones const &carBack) noexcept
 {
   std::lock_guard<std::mutex> lock(m_carBackMutex);
-  m_carBack = carBack
+  m_carBack = carBack;
+}
+
+void Behavior::setOrangeCones(opendlv::logic::perception::Cones const &closestOrangeCone) noexcept
+{
+  std::lock_guard<std::mutex> lock(m_closestOrangeConeMutex);
+  m_closestOrangeCone = closestOrangeCone;
 }
 
 void Behavior::setFrontUltrasonic(opendlv::proxy::DistanceReading const &frontUltrasonicReading) noexcept
@@ -104,6 +112,7 @@ void Behavior::step() noexcept
   opendlv::logic::perception::Cones closestBlueCone;
   opendlv::logic::perception::Cones closestYellowCone;
   opendlv::logic::perception::Cones carBack;
+  opendlv::logic::perception::Cones closestOrangeCone;
   opendlv::proxy::DistanceReading frontUltrasonicReading;
   opendlv::proxy::DistanceReading rearUltrasonicReading;
   opendlv::proxy::VoltageReading leftIrReading;
@@ -112,6 +121,7 @@ void Behavior::step() noexcept
     std::lock_guard<std::mutex> lock1(m_closestBlueConeMutex);
     std::lock_guard<std::mutex> lock2(m_closestYellowConeMutex);
     std::lock_guard<std::mutex> lock3(m_carBackMutex);
+    std::lock_guard<std::mutex> lock4(m_closestOrangeConeMutex);
     std::lock_guard<std::mutex> lock5(m_frontUltrasonicReadingMutex);
     std::lock_guard<std::mutex> lock6(m_rearUltrasonicReadingMutex);
     std::lock_guard<std::mutex> lock7(m_leftIrReadingMutex);
@@ -120,6 +130,7 @@ void Behavior::step() noexcept
     closestBlueCone = m_closestBlueCone;
     closestYellowCone = m_closestYellowCone;
     carBack = m_carBack;
+    closestOrangeCone = m_closestOrangeCone;
     frontUltrasonicReading = m_frontUltrasonicReading;
     rearUltrasonicReading = m_rearUltrasonicReading;
     leftIrReading = m_leftIrReading;
@@ -130,8 +141,11 @@ void Behavior::step() noexcept
   int32_t blueConeY = closestBlueCone.y();
   int32_t yellowConeX = closestYellowCone.x();
   int32_t yellowConeY = closestYellowCone.y();
-  int32_t carBackX = carBack.x();
-  int32_t carBackY = carBack.y();
+  int32_t otherCarX = carBack.x();
+  int32_t otherCarY = carBack.y();
+  int32_t orangeConeX = closestOrangeCone.x();
+  int32_t orangeConeY = closestOrangeCone.y();
+
   // double resultvec = 0.0f;
   double anglefromzero = 0.0f;
   double errorangle = 0.0f;
@@ -145,7 +159,24 @@ void Behavior::step() noexcept
   float groundSteeringAngle = 0.0f;
   std::cout<< "Blue Cone X: " << blueConeX<< " Y: " << blueConeY << std::endl;
   std::cout<< "Yellow Cone X: " << yellowConeX << " Y: " << yellowConeY << std::endl;
+  std::cout<< "Orange Cone X: " << orangeConeX << " Y: " << orangeConeY << std::endl;
   
+ 
+  // intesection behavior
+  if ((orangeConeX == 10000) || (orangeConeY == 10000)) {
+    std::cout << "no orange cones visible. DRIVE ON" << std::endl;
+  } else if ((orangeConeX > 0) && (orangeConeY < 300) && (otherCarX > 200) && (otherCarX < 500)) {
+    pedalPosition = 0.0f;
+    std::cout << "STOPPING: at intersection, car incoming" << std::endl; 
+    } else if ((orangeConeX > 0) && (orangeConeY < 300) && (otherCarX > 500)) {
+    std::cout << "passing intersection, no incoming cars from right" << std::endl;
+    }
+  
+  //car in front behavior
+  if ((otherCarY < 300) && ((otherCarX <= 200) || (otherCarX >= -200))) {
+    pedalPosition = 0.1f;
+    std::cout << "Car in front, slowing down" <<std::endl; }
+  // normal track behavior
   if ((blueConeX == 10000) || (blueConeY == 10000)) {
     // groundSteeringAngle = 0.2f;
     groundSteeringAngle = -0.2f;
