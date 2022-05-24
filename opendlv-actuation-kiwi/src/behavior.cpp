@@ -165,7 +165,7 @@ void Behavior::step() noexcept
   // intesection behavior
   if ((orangeConeX == 10000) || (orangeConeY == 10000)) {
     std::cout << "no orange cones visible. DRIVE ON" << std::endl;
-  } else if ((orangeConeX > 0) && (orangeConeY < 300) && (otherCarX > 200) && (otherCarX < 500)) {
+  } else if ((orangeConeX > 0) && (orangeConeY < 300) && (otherCarX >= 100) && (otherCarX < 500)) {
     pedalPosition = 0.0f;
     std::cout << "STOPPING: at intersection, car incoming" << std::endl; 
     } else if ((orangeConeX > 0) && (orangeConeY < 300) && (otherCarX > 500)) {
@@ -214,29 +214,6 @@ void Behavior::step() noexcept
       }
     }
 
-  // if (abs(errorangle) <= 10) {
-    
-  // } 
-
-  /*
-  if (frontDistance < 0.3f) {
-    pedalPosition = 0.0f;
-  } else {
-    if (rearDistance < 0.3f) {
-      pedalPosition = 0.4f;
-    }
-  }
-
-  if (leftDistance < rightDistance) {
-    if (leftDistance < 0.2f) {
-      groundSteeringAngle = 0.2f;
-    }
-  } else {
-    if (rightDistance < 0.2f) {
-      groundSteeringAngle = 0.2f;
-    }
-  }
-  */
   {
     std::lock_guard<std::mutex> lock1(m_groundSteeringAngleRequestMutex);
     std::lock_guard<std::mutex> lock2(m_pedalPositionRequestMutex);
